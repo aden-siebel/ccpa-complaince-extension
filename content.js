@@ -1,29 +1,45 @@
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  var expression = /href[-a-zA-Z0-9@:%._\+~#="/ ;>|()]{2,256}Do Not Sell/;
-  var regex = new RegExp(expression);
+	//Set up regexes
 
-  var expression2 = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/;
-  var linkReg = new RegExp(expression2);
+	//Regex for do not sell HTML block
+	var dnsEx = /<[-a-zA-Z0-9@:%._\+~#="/ ;>|()]{2,256}Do Not Sell/;
+	var dnsRegex = new RegExp(dnsEx);
 
-  var matches = document.documentElement.innerHTML.match(regex)
-  var links = matches[0].match(linkReg)
+	//Regex for links
+	var linkEx = /href=".*?"/;
+	var linkRegex = new RegExp(linkEx);
 
-  if(links[0].indexOf("com") > -1)
-  {
-    sendResponse({link: 0})  }
-  else
-  {
-    if(links)
-    {
-      sendResponse({link: links[0]})
-    }
-    else
-    {
-      sendResponse({link: 1})
-    }
-  }
+	var matches = document.documentElement.innerHTML.match(dnsRegex);
+	var links = 0;
 
+	var toSend = 0;
 
+	if(matches)
+	{
+		//Grab the href
+		links = matches[0].match(linkRegex);
+		var link;
 
+		if(links)
+		{
+			link = links[0];
+			link = link.substring(6, link.length - 1);
+
+			if(!(link.startsWith("http") || link.charAt(0) === '/'))
+			{
+				toSend = 1;
+			}
+			else
+			{
+				toSend = link;
+			}
+		}
+		else
+		{
+			toSend = 1;
+		}
+	}
+
+	sendResponse({link: toSend}) ;
 
 })
